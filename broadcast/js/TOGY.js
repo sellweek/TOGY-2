@@ -38,6 +38,9 @@ var data = {
 };
 
 var TOGY = function() {
+
+    var timeoutID = undefined;
+
     var Coords = function(h, v) {
         this.h = h;
         this.v = v;
@@ -82,8 +85,17 @@ var TOGY = function() {
     var cycle = function(sections) {
     	var c = showNext(sections);
     	var timeout = sections[c.h].delays * 1000;
-    	setTimeout(cycle, timeout, sections);
+    	timeoutID = setTimeout(cycle, timeout, sections);
     };
+
+    var stopCycle = function() {
+        if (timeoutID) {
+            window.clearTimeout(timeoutID);
+            timeoutID = undefined;
+            return true;
+        }
+        return false;
+    }
 
     //This function returns coordinates of the next active section.
     //If no section is active, it returns coordinates of the first slide
@@ -203,6 +215,7 @@ var TOGY = function() {
         "isActiveAt": isActiveAt,
         "buildCoords":buildCoords,
         "buildHTML": buildHTML,
-        "replaceDates": replaceDates
+        "replaceDates": replaceDates,
+        "stopCycle": stopCycle
     }
 }();
