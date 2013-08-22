@@ -39,27 +39,42 @@ var data = {
 
 var TOGY = function() {
 
+    //timeoutID is the ID of timeout used by cycle()
     var timeoutID = undefined;
 
+    //Coords encapsulates Reveal.js presentation indices.
+    //Every slide has coords, using which it can be shown by
+    //Reveal.slide() function.
+    //Coords of a section are those of its first slide.
+    //In current implementation, f (fragment index) 
+    //will always be undefined.
     var Coords = function(h, v) {
         this.h = h;
         this.v = v;
         this.f = undefined;
     };
 
+    //isLastInSection returns whether given Coords belong to
+    //the last slide in a section.
     Coords.prototype.isLastInSection = function(sections) {
         return this.v == (sectionLength(sections[this.h]) - 1);
     };
 
+    //show instructs Reveal to move to slide located at given Coords.
     Coords.prototype.show = function() {
     	Reveal.slide(this.h, this.v, undefined);
     }
 
+    //getCurrent returns Coords of currently active slide, using Reveal.getIndices().
     Coords.getCurrent = function() {
         var ind = Reveal.getIndices();
         return new Coords(ind.h, ind.v);
     }
 
+    //sectionLength returns number of slides in a section.
+    //This function is necessary, because setting showTitle
+    //to true adds one slide (which doesn't appear in the slides array)
+    //to the section.
     var sectionLength = function(section) {
     	var slides = section.slides.length;
     	if (section.showTitle) {
@@ -68,7 +83,7 @@ var TOGY = function() {
     	return slides;
     };
 
-    //Shows next active slide and returns its Coords.
+    //showNext shows next slide and returns its Coords.
     var showNext = function(sections) {
         var c = Coords.getCurrent();
         if (!c.isLastInSection(data.sections)) {
@@ -82,13 +97,16 @@ var TOGY = function() {
         return nextCoords;
     };
 
+    //cycle cycles between slides by calling showNext in the
+    //interval given by respective sections.
     var cycle = function(sections) {
     	var c = showNext(sections);
     	var timeout = sections[c.h].delays * 1000;
     	timeoutID = setTimeout(cycle, timeout, sections);
     };
 
-    var stopCycle = function() {
+    //stop stops cycling between intervals.
+    var stop = function() {
         if (timeoutID) {
             window.clearTimeout(timeoutID);
             timeoutID = undefined;
@@ -97,9 +115,11 @@ var TOGY = function() {
         return false;
     }
 
-    //This function returns coordinates of the next active section.
+    //nextActiveSection returns coordinates of the next active section.
     //If no section is active, it returns coordinates of the first slide
     //of the current section.
+    //A section is considered active if current time is between its
+    //start and end times. 
     var nextActiveSection = function(currCoords, sections) {
     	var now = Date.now();
     	for (var i = currCoords.h + 1; i < sections.length; i++) {
@@ -107,7 +127,8 @@ var TOGY = function() {
     			return new Coords(i, 0);
     		}
     	}
-    	//If we can't find an active section before the end of broadcast, we have to start 
+    	//If we can't find an active section before the end of broadcast, we have
+        //to start from the beginning.
     	for (i = 0; i <= currCoords.h; i++) {
     		if (isActiveAt(now, sections[i])) {
     			return new Coords(i, 0);
@@ -117,6 +138,8 @@ var TOGY = function() {
     	return new Coords(currCoords.h, 0)
     };
 
+    //buildHTML constructs DOM used by Reveal.js into
+    //a div, class of which is "slides"
     var buildHTML = function(sections) {
         var slidesArea = $(".slides");
         slidesArea.empty();
@@ -141,9 +164,7 @@ var TOGY = function() {
         }
     };
 
-    //Every slide and section has coords. Coords of a slide correspond
-    //to its coords in Reveal while coords of a section are those of its
-    //first slide, be it title slide or just a normal slide.
+    //buildCoords adds coords to slides and sections in passed in object.
     var buildCoords = function(sections) {
         for (var i = 0; i < sections.length; i++) {
             sections[i].coords = new Coords(i, 0)
@@ -161,6 +182,9 @@ var TOGY = function() {
         }
     };
 
+    //replaceDates replaces string encoded dates and times
+    //(in YYYY-MM-DD HH:MM) format in passed in object
+    //by JavaScript Date objects.
     var replaceDates = function(data) {
         data.timestamp = new Date(data.timestamp)
         for (var i = 0; i < data.sections.length; i++) {
@@ -173,6 +197,8 @@ var TOGY = function() {
         }
     };
 
+    //isActiveAt returns whether a section is
+    //active on the given Date.
     var isActiveAt = function(date, section) {
         if (section.start && date < section.start) {
             return false;
@@ -185,6 +211,8 @@ var TOGY = function() {
         return true;
     };
 
+    //initialize prepares data object and DOM
+    //and starts cycling the slides.
     var initialize = function(data) {
     	replaceDates(data);
     	buildCoords(data.sections);
@@ -209,13 +237,7 @@ var TOGY = function() {
     };
 
     return {
-        "Coords": Coords,
         "initialize": initialize,
-        "showNext": showNext,
-        "isActiveAt": isActiveAt,
-        "buildCoords":buildCoords,
-        "buildHTML": buildHTML,
-        "replaceDates": replaceDates,
-        "stopCycle": stopCycle
+        "stop": stop
     }
 }();
