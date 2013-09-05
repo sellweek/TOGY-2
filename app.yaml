@@ -1,0 +1,12 @@
+application: sellweek-testing
+version: 0-0
+runtime: go
+api_version: go1
+
+handlers:
+- url: /admin.*
+  script: _go_app
+  login: admin
+  auth_fail_action: redirect
+- url: /.*
+  script: _go_app
