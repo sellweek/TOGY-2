@@ -29,6 +29,10 @@ var data = {
             contents: "<h3>Bum!</h3>"
         },
         {
+            title: "Skúška tabuľky",
+            contents: '<table border="1"><tr><td>ahooj</td><td>ahooj</td></tr><tr><td>ahooj</td><td>ahooj</td></tr></table>'
+        },
+        {
             title: "",
             contents: "<h1>Zbohom</h1>"
         }],
