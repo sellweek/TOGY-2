@@ -1,9 +1,9 @@
 package util
 
 import (
-	//	"appengine"
-	"github.com/MiniProfiler/go/miniprofiler_gae"
+	"appengine"
 	"github.com/gorilla/mux"
+	"github.com/mjibson/appstats"
 	"net/http"
 	"time"
 )
@@ -14,7 +14,7 @@ var Tz, _ = time.LoadLocation("Europe/Bratislava")
 
 //Context is the type used for passing data to handlers
 type Context struct {
-	Ac   miniprofiler_gae.Context
+	Ac   appengine.Context
 	W    http.ResponseWriter
 	R    *http.Request
 	Vars map[string]string
@@ -22,7 +22,7 @@ type Context struct {
 
 //Handler maps standard net/http handlers to handlers accepting Context
 func Handler(hand func(Context) error) http.Handler {
-	return miniprofiler_gae.NewHandler(func(c miniprofiler_gae.Context, w http.ResponseWriter, r *http.Request) {
+	return appstats.NewHandler(func(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		err := hand(Context{Ac: c, W: w, R: r, Vars: vars})
 		if err != nil {
