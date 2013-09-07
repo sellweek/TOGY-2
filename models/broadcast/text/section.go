@@ -56,11 +56,30 @@ func (ts *TextSection) Delete(c appengine.Context) (err error) {
 	return
 }
 
-func GetAll(c appengine.Context) (tss []*TextSection, err error) {
+func Get(c appengine.Context, key *datastore.Key) (*TextSection, error) {
+	m, err := gaemodel.GetByKey(c, typ, key)
+	if err != nil {
+		return err
+	}
+	return m.(*TextSection)
+}
+
+func GetAll(c appengine.Context) ([]*TextSection, error) {
 	ms, err := gaemodel.GetAll(c, typ, kind, 0, 0)
 	if err != nil {
-		return
+		return err
 	}
-	tss = ms.([]*TextSection)
-	return
+	return ms.([]*TextSection)
+}
+
+func GetActive(c appengine.Context) ([]*TextSection, error) {
+	now := time.Now()
+	q := datastore.NewQuery(kind).Filter("Published =", true).
+		Filter("Start <", now).Filter("End >", now)
+	ms, err := gaemodel.MultiQuery(c, typ, kind, q)
+	if err != nil {
+		return err
+	}
+
+	return ms.([]*TextSection)
 }
