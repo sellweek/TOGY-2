@@ -52,6 +52,20 @@ func (ts *TextSection) Save(c appengine.Context) (err error) {
 }
 
 func (ts *TextSection) Delete(c appengine.Context) (err error) {
+	slides, err := GetSlidesBySection(c, ts.Key())
+	if err != nil {
+		return
+	}
+
+	keys := make([]*datastore.Key, len(slides), len(slides))
+	for i, s := range slides {
+		keys[i] = s.Key()
+	}
+
+	if err = datastore.DeleteMulti(c, keys); err != nil {
+		return
+	}
+
 	err = gaemodel.Delete(c, ts)
 	return
 }
