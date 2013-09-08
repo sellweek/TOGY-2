@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-const kind = "TextSection"
+const sectionKind = "TextSection"
 
-var typ = reflect.TypeOf(TextSection{})
+var sectionTyp = reflect.TypeOf(TextSection{})
 
 type TextSection struct {
 	Title             string
@@ -31,7 +31,7 @@ func (ts *TextSection) SetKey(k *datastore.Key) {
 }
 
 func (ts *TextSection) Kind() string {
-	return kind
+	return sectionKind
 }
 
 func (ts *TextSection) Ancestor() *datastore.Key {
@@ -56,30 +56,30 @@ func (ts *TextSection) Delete(c appengine.Context) (err error) {
 	return
 }
 
-func Get(c appengine.Context, key *datastore.Key) (*TextSection, error) {
-	m, err := gaemodel.GetByKey(c, typ, key)
+func GetSection(c appengine.Context, key *datastore.Key) (*TextSection, error) {
+	m, err := gaemodel.GetByKey(c, sectionTyp, key)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return m.(*TextSection)
+	return m.(*TextSection), nil
 }
 
-func GetAll(c appengine.Context) ([]*TextSection, error) {
-	ms, err := gaemodel.GetAll(c, typ, kind, 0, 0)
+func GetAllSections(c appengine.Context) ([]*TextSection, error) {
+	ms, err := gaemodel.GetAll(c, sectionTyp, sectionKind, 0, 0)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return ms.([]*TextSection)
+	return ms.([]*TextSection), nil
 }
 
-func GetActive(c appengine.Context) ([]*TextSection, error) {
+func GetActiveSections(c appengine.Context) ([]*TextSection, error) {
 	now := time.Now()
-	q := datastore.NewQuery(kind).Filter("Published =", true).
+	q := datastore.NewQuery(sectionKind).Filter("Published =", true).
 		Filter("Start <", now).Filter("End >", now)
-	ms, err := gaemodel.MultiQuery(c, typ, kind, q)
+	ms, err := gaemodel.MultiQuery(c, sectionTyp, sectionKind, q)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return ms.([]*TextSection)
+	return ms.([]*TextSection), nil
 }
